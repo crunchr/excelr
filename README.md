@@ -34,7 +34,9 @@ openpyxl when looking at run time.
 
 Of course the pandas variant has to first create a DataFrame before it can 
 export to excel, which explains the poor performance in terms of memory and 
-run time.
+run time. Of course if you already have a DataFrame, using the pandas
+``to_excel`` function is probably the best choice.
 
-![Alt text](/img/MB.png?raw=true "Memory usage")
-![Alt text](/img/seconds.png?raw=true "Run time")
+Memory usage               |  Run Time
+:-------------------------:|:-------------------------:
+![](/img/MB.png?raw=true)  |  ![](/img/seconds.png?raw=true)

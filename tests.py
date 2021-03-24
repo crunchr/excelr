@@ -1,0 +1,67 @@
+from itertools import zip_longest
+from tempfile import NamedTemporaryFile
+from unittest import TestCase
+from hypothesis import given, strategies as st
+from openpyxl import load_workbook
+
+from excelr import to_excel
+
+
+class Tests(TestCase):
+
+    @classmethod
+    def _test_generated_excel_should_equal_input(cls, draw, st_cells):
+        """
+        Common code for test_generated_excel_should_equal_input functions which:
+
+        - draws some example data to write to an excel file
+        - creates an excel file using excelr
+        - reads the file back in using openpyxl
+        """
+        # draw some example cells
+        data = draw(st.integers(min_value=1, max_value=16).flatmap(
+            lambda num_cols:
+            st.lists(
+                st.lists(st_cells, min_size=num_cols, max_size=num_cols),
+                min_size=1,
+                max_size=16,
+            )
+        ))
+
+        # generate an excel file with using exclr
+        with NamedTemporaryFile('wb', delete=False, suffix='.xlsx') as s:
+            to_excel(s, data)
+
+        # use openpyxl to read the generated excel file
+        actual = [list(x) for x in load_workbook(s.name)['Sheet1'].values]
+
+        return data, actual
+
+    @given(st.data())
+    def test_generated_excel_should_equal_input(self, data):
+        """
+        Check the property that the generated excel file should be readable
+        by openpyxl and the data read from that file should be the same as the
+        input data.
+        """
+        st_cells = st.one_of(
+            st.integers(),
+            st.text(st.characters(blacklist_categories=['Cs', 'Cc']), min_size=1),
+            st.dates(),
+            st.booleans(),
+        )
+        expected, actual = self._test_generated_excel_should_equal_input(data.draw, st_cells)
+        self.assertEqual(expected, actual)
+
+    @given(st.data())
+    def test_generated_excel_should_equal_input_for_float(self, data):
+        """
+        Check the property that the generated excel file should be readable
+        by openpyxl and the data read from that file should be the same as the
+        input data (we do floats separately since we need to use almostEqual)
+        """
+        st_cells = st.floats(allow_infinity=False, allow_nan=False)
+        expected, actual = self._test_generated_excel_should_equal_input(data.draw, st_cells)
+        for expected_row, actual_row in zip_longest(expected, actual):
+            for expected_cell, actual_cell in zip_longest(expected_row, actual_row):
+                self.assertAlmostEqual(expected_cell, actual_cell)

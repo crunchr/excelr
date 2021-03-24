@@ -1,5 +1,3 @@
-# cython: profile=True
-
 import string
 from datetime import date
 from itertools import product

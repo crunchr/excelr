@@ -32,10 +32,11 @@ tests look at wall time and memory usage. We can see that both openpyxl and
 excelr perform very well from a memory perspective, while excelr outperforms
 openpyxl when looking at run time.
 
-Of course the pandas variant has to first create a DataFrame before it can 
-export to excel, which explains the poor performance in terms of memory and 
-run time. Of course if you already have a DataFrame, using the pandas
-``to_excel`` function is probably the best choice.
+The poor performance of the pandas test can be explained by the fact that we
+first need to create a DataFrame before it can export to excel. Also pandas
+does not take advantage of the write_only mode of openpyxl. Of course if you 
+already have a DataFrame, using the pandas ``to_excel`` function is probably
+the best choice.
 
 Memory usage               |  Run Time
 :-------------------------:|:-------------------------:

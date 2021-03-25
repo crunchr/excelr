@@ -3,6 +3,15 @@ name = "excelr"
 version = "0.1.0"
 description = ""
 authors = ["Daniel Bradburn <daniel@crunchrapps.com>"]
+include = [
+    "xlsx_template/*",
+    "xlsx_template/_rels/*",
+    "xlsx_template/docProps/*",
+    "xlsx_template/xl/*",
+    "xlsx_template/xl/_rels/*",
+    "xlsx_template/xl/worksheets/*",
+    "_excelr.pyx",
+]
 
 [tool.poetry.dependencies]
 python = "^3.8"

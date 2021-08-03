@@ -15,7 +15,6 @@ include = [
 
 [tool.poetry.dependencies]
 python = "^3.8"
-cython = "^0.29.22"
 
 [tool.poetry.dev-dependencies]
 jupyter = "^1.0.0"

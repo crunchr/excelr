@@ -1,21 +1,29 @@
 import os
 import shutil
+import string
+import sys
+from datetime import date
+from itertools import product
 from pathlib import Path
 from tempfile import TemporaryDirectory
+from typing import Union, IO, Text, Iterable, Optional
 from zipfile import ZipFile
-import pyximport; pyximport.install()  # TODO: build so that we don't need cython as dependency
-from _excelr import write_rows
 
 
 src_path = Path(__file__).parent / 'xlsx_template'
 
 
+# collect all the files from the excel template that should be copied
+# when generating a new excel file.
 files = [
     Path(root).relative_to(src_path) / file
     for root, dirs, files in os.walk(src_path)
     for file in files
 ]
 
+
+# collect all the directories from the excel template that should be copied
+# when generating a new excel file.
 dirs = [
     Path(root).relative_to(src_path) / dir
     for root, dirs, _ in os.walk(src_path)
@@ -23,9 +31,25 @@ dirs = [
 ]
 
 
-def to_excel(output, rows):
+TYPE_MAP = {bool: 'b', float: 'n', int: 'n', date: 'd'}
+
+
+COLUMN_COORDINATES = [
+    ''.join(x)
+    for i in range(1, 4)
+    for x in product(string.ascii_uppercase, repeat=i)
+]
+
+
+StrPath = Union[str, os.PathLike] if sys.version_info >= (3, 6) else Text
+Value = Optional[Union[bool, float, int, date]]
+Rows = Iterable[Iterable[Value]]
+
+
+def to_excel(output: Union[StrPath, IO[bytes]], rows: Rows):
     """
-    Create a simple excel file from the given rows, writing to the given file.
+    Create a simple excel file from the given rows, writing to the desired
+    output file.
 
     :param output: path to file, or file like object.
     :param rows: Iterable of Iterables containing rows / columns to export
@@ -44,7 +68,18 @@ def to_excel(output, rows):
         # output cells to the worksheet (template already contains <sheetData>
         # and <worksheet> xml opening tags)
         with open(dst_path / 'xl' / 'worksheets' / 'sheet1.xml', 'a') as f:
-            write_rows(f, rows)
+            for row, row_values in enumerate(rows, 1):
+                f.write(f'<row r="{row}">')
+                for col, value in zip(COLUMN_COORDINATES, row_values):
+                    data_type = TYPE_MAP.get(type(value), 't')
+                    if value is None:
+                        value = '-'
+                    if data_type == 'b':
+                        value = int(value)
+                    elif data_type == 't':
+                        value = value.replace("&", "&amp;").replace(">", "&gt;").replace("<", "&lt;")
+                    f.write(f'<c r="{col}{row}" t="{data_type}"><v>{value}</v></c>')
+                f.write(f'</row>')
             f.write("</sheetData></worksheet>")
 
         # convert to an xlsx file which is actually just a zip file containing

@@ -41,3 +41,5 @@ the best choice.
 Memory usage               |  Run Time
 :-------------------------:|:-------------------------:
 ![](/img/MB.png?raw=true)  |  ![](/img/seconds.png?raw=true)
+
+(To generate these images run the benchmark.ipynb)

@@ -1,9 +1,11 @@
+# std
 from itertools import zip_longest
 from tempfile import NamedTemporaryFile
 from unittest import TestCase
+# 3rd party
 from hypothesis import given, strategies as st
 from openpyxl import load_workbook
-
+# excelr
 from excelr import to_excel
 
 
@@ -35,7 +37,10 @@ class Tests(TestCase):
         # use openpyxl to read the generated excel file
         actual = [list(x) for x in load_workbook(s.name)['Sheet1'].values]
 
-        return data, actual
+        # We expect None values to have been converted to '-'
+        expected = [['-' if col is None else col for col in row] for row in data]
+
+        return expected, actual
 
     @given(st.data())
     def test_generated_excel_should_equal_input(self, data):
@@ -45,6 +50,7 @@ class Tests(TestCase):
         input data.
         """
         st_cells = st.one_of(
+            st.none(),
             st.integers(),
             st.text(st.characters(blacklist_categories=['Cs', 'Cc']), min_size=1),
             st.dates(),

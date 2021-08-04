@@ -3,6 +3,29 @@
 Excelerated .xlsx generation that can create a basic .xlsx file with virtually 
 no memory (~10MB), and in very little time (~1s for 1.5 million cells).
 
+## Installation
+
+```
+poetry add excelr
+```
+
+or 
+
+```bash
+pip install excelr
+```
+
+## Usage
+
+The function excelr takes a stream, or filename to output to and an iterable of iterables which yields the cell values. You should prefer generators to reduce memory usage.
+
+```python
+>>> from excelr import to_excel
+>>> to_excel('example.xlsx', ['abc', '123'])
+```
+
+![](/img/example.png?raw=true)
+
 ## Motivation
 
 This is useful when you have the following requirements...
@@ -43,3 +66,25 @@ Memory usage               |  Run Time
 ![](/img/MB.png?raw=true)  |  ![](/img/seconds.png?raw=true)
 
 (To generate these images run the benchmark.ipynb)
+
+## Dev guide
+
+* Add pypi api token...
+
+```
+poetry config pypi-token.pypi my-token
+```
+
+* To create a release...
+
+```
+python -m unittest
+poetry version (patch|minor|major)
+git add pyproject.toml
+git commit -m (version)
+git tag (version)
+git push origin (version)
+git push origin HEAD
+poetry build
+poetry publish
+```

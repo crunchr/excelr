@@ -34,6 +34,7 @@ dirs = [
 TYPE_MAP = {bool: 'b', float: 'n', int: 'n', date: 'd'}
 
 
+# enough for 18278 columns
 COLUMN_COORDINATES = [
     ''.join(x)
     for i in range(1, 4)
@@ -65,21 +66,38 @@ def to_excel(output: Union[StrPath, IO[bytes]], rows: Rows):
         for file in files:
             shutil.copy(src_path / file, dst_path / file)
 
+        # the sheet1.xml file is incomplete, fill it in now by writing
         # output cells to the worksheet (template already contains <sheetData>
         # and <worksheet> xml opening tags)
         with open(dst_path / 'xl' / 'worksheets' / 'sheet1.xml', 'a') as f:
+
             for row, row_values in enumerate(rows, 1):
+
                 f.write(f'<row r="{row}">')
+
                 for col, value in zip(COLUMN_COORDINATES, row_values):
-                    data_type = TYPE_MAP.get(type(value), 't')
+
+                    data_type = TYPE_MAP.get(type(value), 'inlineStr')
+                    tag_start, tag_end = '<v>', '</v>'
+
                     if value is None:
                         value = '-'
+
                     if data_type == 'b':
                         value = int(value)
-                    elif data_type == 't':
-                        value = value.replace("&", "&amp;").replace(">", "&gt;").replace("<", "&lt;")
-                    f.write(f'<c r="{col}{row}" t="{data_type}"><v>{value}</v></c>')
+
+                    # use inlineStr so that we don't need to keep track of
+                    # shared_strings.xml which would increase the memory
+                    # we need. Since xlsx is a compressed format this shouldn't
+                    # affect the size of the generated file too much.
+                    elif data_type == 'inlineStr':
+                        value = _xml_escape(value)
+                        tag_start, tag_end = '<is><t>', '</t></is>'
+
+                    f.write(f'<c r="{col}{row}" t="{data_type}">{tag_start}{value}{tag_end}</c>')
+
                 f.write(f'</row>')
+
             f.write("</sheetData></worksheet>")
 
         # convert to an xlsx file which is actually just a zip file containing
@@ -87,3 +105,14 @@ def to_excel(output: Union[StrPath, IO[bytes]], rows: Rows):
         with ZipFile(output, 'w') as zf:
             for file in files:
                 zf.write(dst_path / file, file)
+
+
+def _xml_escape(value: str) -> str:
+    """
+    Escape special xml characters.
+
+    :param value: Value to escape.
+
+    :return: Escaped value.
+    """
+    return value.replace("&", "&amp;").replace(">", "&gt;").replace("<", "&lt;")

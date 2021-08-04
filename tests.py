@@ -1,4 +1,10 @@
 # std
+from xml.etree import ElementTree
+
+from zipfile import ZipFile
+
+from io import StringIO, BytesIO
+
 from itertools import zip_longest
 from tempfile import NamedTemporaryFile
 from unittest import TestCase
@@ -71,3 +77,15 @@ class Tests(TestCase):
         for expected_row, actual_row in zip_longest(expected, actual):
             for expected_cell, actual_cell in zip_longest(expected_row, actual_row):
                 self.assertAlmostEqual(expected_cell, actual_cell)
+
+    def test_strings_should_be_inline(self):
+        """
+        Verify that strings are written as inlineStr.
+        """
+        with BytesIO() as io:
+            to_excel(io, ['a'])
+            io.seek(0)
+            with ZipFile(io) as z:
+                with z.open('xl/worksheets/sheet1.xml') as f:
+                    tree = ElementTree.fromstring(f.read().decode())
+                    self.assertEqual(tree[4][0][0].attrib['t'], 'inlineStr')

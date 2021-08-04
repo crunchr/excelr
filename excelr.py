@@ -1,12 +1,11 @@
 import os
 import shutil
 import string
-import sys
 from datetime import date
 from itertools import product
 from pathlib import Path
 from tempfile import TemporaryDirectory
-from typing import Union, IO, Text, Iterable, Optional
+from typing import Union, IO, Iterable, Optional
 from zipfile import ZipFile
 
 
@@ -42,8 +41,8 @@ COLUMN_COORDINATES = [
 ]
 
 
-StrPath = Union[str, os.PathLike] if sys.version_info >= (3, 6) else Text
-Value = Optional[Union[bool, float, int, date]]
+StrPath = Union[str, os.PathLike]
+Value = Optional[Union[bool, float, int, date, str]]
 Rows = Iterable[Iterable[Value]]
 
 
@@ -84,6 +83,7 @@ def to_excel(output: Union[StrPath, IO[bytes]], rows: Rows):
                         value = '-'
 
                     if data_type == 'b':
+                        assert isinstance(value, bool)
                         value = int(value)
 
                     # use inlineStr so that we don't need to keep track of
@@ -91,6 +91,7 @@ def to_excel(output: Union[StrPath, IO[bytes]], rows: Rows):
                     # we need. Since xlsx is a compressed format this shouldn't
                     # affect the size of the generated file too much.
                     elif data_type == 'inlineStr':
+                        assert isinstance(value, str)
                         value = _xml_escape(value)
                         tag_start, tag_end = '<is><t>', '</t></is>'
 

@@ -69,7 +69,7 @@ Memory usage               |  Run Time
 
 ## Dev guide
 
-* Add pypi api token...
+* Add pypi api token (https://pypi.org/help/#apitoken)...
 
 ```
 poetry config pypi-token.pypi my-token
@@ -78,13 +78,5 @@ poetry config pypi-token.pypi my-token
 * To create a release...
 
 ```
-python -m unittest
-poetry version (patch|minor|major)
-git add pyproject.toml
-git commit -m (version)
-git tag (version)
-git push origin (version)
-git push origin HEAD
-poetry build
-poetry publish
+./release
 ```

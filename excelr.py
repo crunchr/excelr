@@ -6,7 +6,7 @@ from itertools import product
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from typing import Union, IO, Iterable, Optional
-from zipfile import ZipFile
+from zipfile import ZipFile, ZIP_DEFLATED
 
 
 src_path = Path(__file__).parent / 'xlsx_template'
@@ -103,7 +103,7 @@ def to_excel(output: Union[StrPath, IO[bytes]], rows: Rows):
 
         # convert to an xlsx file which is actually just a zip file containing
         # the various xml files we generated.
-        with ZipFile(output, 'w') as zf:
+        with ZipFile(output, 'w', compression=ZIP_DEFLATED) as zf:
             for file in files:
                 zf.write(dst_path / file, file)
 

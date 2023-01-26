@@ -69,6 +69,7 @@ Memory usage               |  Run Time
 
 ## Dev guide
 
+* Use signed commits (git commit -S -m "commit message")
 * Add pypi api token (https://pypi.org/help/#apitoken)...
 
 ```

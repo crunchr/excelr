@@ -69,6 +69,7 @@ Memory usage               |  Run Time
 
 ## Dev guide
 
+* Use [signed commits](https://docs.github.com/en/authentication/managing-commit-signature-verification/about-commit-signature-verification) (git commit -S -m "commit message")
 * Add pypi api token (https://pypi.org/help/#apitoken)...
 
 ```

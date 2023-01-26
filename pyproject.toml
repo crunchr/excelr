@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "excelr"
-version = "0.1.3"
+version = "0.2.0"
 description = ""
 authors = ["Daniel Bradburn <daniel@crunchrapps.com>"]
 include = [

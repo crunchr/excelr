@@ -67,6 +67,10 @@ Memory usage               |  Run Time
 
 (To generate these images run the benchmark.ipynb)
 
+## License
+
+BSD 3-Clause License
+
 ## Dev guide
 
 * Use [signed commits](https://docs.github.com/en/authentication/managing-commit-signature-verification/about-commit-signature-verification) (git commit -S -m "commit message")

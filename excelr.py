@@ -112,7 +112,6 @@ def to_excel(
                         value = '-'
 
                     if data_type == 'b':
-                        assert isinstance(value, bool)
                         value = int(value)
 
                     # use inlineStr so that we don't need to keep track of
@@ -120,7 +119,6 @@ def to_excel(
                     # we need. Since xlsx is a compressed format this shouldn't
                     # affect the size of the generated file too much.
                     elif data_type == 'inlineStr':
-                        assert isinstance(value, str)
                         value = _xml_escape(value)
                         tag_start, tag_end = '<is><t>', '</t></is>'
 

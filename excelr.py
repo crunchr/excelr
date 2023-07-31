@@ -55,6 +55,14 @@ def to_excel(
     Create a simple excel file from the given rows, writing to the desired
     output file.
 
+    Some information about the format codes can be found in the specification,
+    however it is often difficult to find the information you need. Normally an
+    easier way to figure out what the specific format code should be for your
+    use case is to create a simple excel file with a single column in the
+    desired format. You can then unpack this excel file (an .xlsx is simply
+    a zip file with a different extension) and find the styles.xml file.
+    The tag numFmt should show the format code you need for a specific format.
+
     :param output: path to file, or file like object.
     :param rows: Iterable of Iterables containing rows / columns to export
     :param column_format_codes: Dictionary mapping column indexes to format codes, see

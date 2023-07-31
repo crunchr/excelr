@@ -26,6 +26,20 @@ The function excelr takes a stream, or filename to output to and an iterable of 
 
 ![](/img/example.png?raw=true)
 
+### Column formatting
+
+It is also possible to specify the format code which should be used for formatting each column, for example to display
+the second column (1234.59) as 1234.6 one could pass the following (see [here](https://support.microsoft.com/en-au/office/number-format-codes-5026bbd6-04bc-48cd-bf33-80f18b4eae68)):
+
+```python
+>>> from excelr import to_excel
+>>> to_excel('example.xlsx', ['abc', '1234.59'], column_format_codes={1: '####.#'})
+```
+
+More information about the number formatting can be found in the specification, however it is often hard to find exactly the format code you need. Normally an easier way to figure out what the specific format code should be for your use case is to create a simple excel file with a single column in the desired format. You can then unpack this excel file (an .xlsx is simply a zip file with a different extension) and find the styles.xml file. The tag `numFmt` in styles.xml should show the format code you need for a specific format
+
+The column formats are optional, when not specified the "General" format is used.
+
 ## Motivation
 
 This is useful when you have the following requirements...

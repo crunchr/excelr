@@ -1,10 +1,11 @@
 # std
+from datetime import date, datetime, time
 from xml.etree import ElementTree
 from zipfile import ZipFile
 from io import BytesIO
 from unittest import TestCase
 # excelr
-from excelr import to_excel
+from excelr import to_excel, _to_excel_serial
 
 
 class Tests(TestCase):
@@ -57,3 +58,18 @@ class Tests(TestCase):
         self.assertEqual(self.sheet1[4][0][1].attrib['s'], "0")
         # third column should have custom format
         self.assertEqual(self.sheet1[4][0][2].attrib['s'], "1")
+
+    def test_to_excel_serial_should_generated_correct_number(self):
+        """
+        Verify that the _to_excel_serial is generating an expected serial number for
+        some given values.
+        """
+        tests = [
+            (datetime(2023, 3, 24, 15, 30), 45009.645833),
+            (date(2023, 3, 24), 45009),
+            (time(15, 30), 0.645833)
+        ]
+        for data, expected in tests:
+            with self.subTest(data):
+                actual = _to_excel_serial(data)
+                self.assertAlmostEqual(actual, expected, places=6)

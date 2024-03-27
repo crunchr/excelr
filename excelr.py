@@ -1,11 +1,12 @@
 import os
 import shutil
 import string
-from datetime import date
+import typing
+from datetime import date, datetime, time
 from itertools import product
 from pathlib import Path
 from tempfile import TemporaryDirectory
-from typing import Union, IO, Iterable, Optional, Literal
+from typing import Union, IO, Iterable, Optional
 from zipfile import ZipFile, ZIP_DEFLATED
 
 
@@ -29,9 +30,7 @@ dirs = [
     for dir in dirs
 ]
 
-
-TYPE_MAP = {bool: 'b', float: 'n', int: 'n', date: 'd'}
-
+TYPE_MAP = {bool: 'b', float: 'n', int: 'n', date: 'd', time: 'n', datetime: 'n'}
 
 # enough for 18278 columns
 COLUMN_COORDINATES = [
@@ -50,24 +49,18 @@ def to_excel(
     output: Union[StrPath, IO[bytes]],
     rows: Rows,
     column_format_codes: dict[int, str] = None,
+    coalesce: Union[str, None] = None
 ) -> Union[StrPath, IO[bytes]]:
     """
     Create a simple excel file from the given rows, writing to the desired
     output file.
-
-    Some information about the format codes can be found in the specification,
-    however it is often difficult to find the information you need. Normally an
-    easier way to figure out what the specific format code should be for your
-    use case is to create a simple excel file with a single column in the
-    desired format. You can then unpack this excel file (an .xlsx is simply
-    a zip file with a different extension) and find the styles.xml file.
-    The tag numFmt should show the format code you need for a specific format.
 
     :param output: path to file, or file like object.
     :param rows: Iterable of Iterables containing rows / columns to export
     :param column_format_codes: Dictionary mapping column indexes to format codes, see
                                 https://www.ecma-international.org/publications-and-standards/standards/ecma-376/
                                 for information about supported format codes.
+    :param coalesce: string to coalesce `None` values to.
     """
     with TemporaryDirectory() as d:
 
@@ -117,9 +110,12 @@ def to_excel(
                     tag_start, tag_end = '<v>', '</v>'
 
                     if value is None:
-                        value = '-'
+                        value = coalesce
 
-                    if data_type == 'b':
+                    if isinstance(value, (datetime, time)):
+                        value = _to_excel_serial(value)
+
+                    if type(value) is bool:
                         value = int(value)
 
                     # use inlineStr so that we don't need to keep track of
@@ -127,7 +123,7 @@ def to_excel(
                     # we need. Since xlsx is a compressed format this shouldn't
                     # affect the size of the generated file too much.
                     elif data_type == 'inlineStr':
-                        value = _xml_escape(value)
+                        value = _xml_escape(str(value))
                         tag_start, tag_end = '<is><t>', '</t></is>'
 
                     f.write(f'<c r="{col}{row}" '
@@ -171,10 +167,10 @@ def _get_cell_xfs(num_column_format_codes: int) -> str:
         f'<cellXfs count="{_num_column_format_codes}">',
         *(
             f"""
-                <xf numFmtId="{num_fmt_id + 164}" fontId="0" fillId="0" borderId="0" xfId="0" 
-                    applyFont="false" applyBorder="false" applyAlignment="false" 
+                <xf numFmtId="{num_fmt_id + 164}" fontId="0" fillId="0" borderId="0" xfId="0"
+                    applyFont="false" applyBorder="false" applyAlignment="false"
                     applyProtection="false">
-                    <alignment horizontal="general" vertical="bottom" textRotation="0" 
+                    <alignment horizontal="general" vertical="bottom" textRotation="0"
                                wrapText="false" indent="0" shrinkToFit="false"/>
                     <protection locked="true" hidden="false"/>
                 </xf>
@@ -194,3 +190,33 @@ def _xml_escape(value: str) -> str:
     :return: Escaped value.
     """
     return value.replace("&", "&amp;").replace(">", "&gt;").replace("<", "&lt;")
+
+
+def _to_excel_serial(value: typing.Union[date, time, datetime]) -> float:
+    """
+    Dates and times are stored as numbers in excel, whole part is the number of
+    days since 1900. NOTE excel incorrectly assumes 1900 is a leap year.
+    Fractional part is the time component (seconds / seconds_in_day).
+
+    See:
+        https://support.microsoft.com/en-us/office/date-systems-in-excel-e7fe7167-48a9-4b96-bb53-5612a800b487
+        https://en.wikipedia.org/wiki/Year_1900_problem
+
+    :param value: The date value to convert.
+
+    :return: number representing the given date.
+    """
+    base_date = date(1899, 12, 31)  # Adjusted base date to December 31, 1899
+    if isinstance(value, datetime):
+        return _to_excel_serial(value.date()) + _to_excel_serial(value.time())
+    elif isinstance(value, date):
+        # Calculate delta considering base date as December 31, 1899
+        delta = value - base_date
+        return delta.days + 1  # Adding 1 because Excel starts counting from 1
+    elif isinstance(value, time):
+        # Calculate the fractional day for time values
+        seconds_in_day = 24 * 60 * 60
+        fractional_day = (value.hour * 3600 + value.minute * 60 + value.second) / seconds_in_day
+        return fractional_day
+    else:
+        raise TypeError(type(value))

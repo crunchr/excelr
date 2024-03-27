@@ -45,7 +45,7 @@ The column formats are optional, when not specified the "General" format is used
 This is useful when you have the following requirements...
 
 * You want to create a simple excel file without any bells or whistles, i.e.
-  no fonts, no colours, freeze panes etc. a single sheet
+  no fonts, no colours, freeze panes, a single sheet etc.
 * You are working with a large dataset, and you want to use as little memory
   as possible (for example if you are providing an excel export from a web
   api)

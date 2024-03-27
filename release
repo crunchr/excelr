@@ -13,7 +13,7 @@ echo $VERSION
 
 echo "Update repository"
 git add pyproject.toml
-git commit -m "$VERSION"
+git commit -m -S "$VERSION"
 git tag "$VERSION"
 git push origin "$VERSION"
 git push origin HEAD
